@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SY0-701 Study | Stats</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">SY0&#x2011;701 <span>// Study App</span></div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Dashboard</a>
+      <a href="practice.html" class="nav-link">Practice</a>
+      <a href="questions.html" class="nav-link">Question Bank</a>
+      <a href="stats.html" class="nav-link">Stats</a>
+      <a href="glossary.html" class="nav-link">Glossary</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div>
+      <div class="page-title">Statistics</div>
+      <div class="page-subtitle">Track your progress over time</div>
+    </div>
+    <button class="btn btn-danger btn-sm" id="reset-btn">Reset All Progress</button>
+  </div>
+
+  <!-- Lifetime Stats -->
+  <div class="grid-4 section-gap" id="lifetime-stats"></div>
+
+  <!-- 14-day chart -->
+  <div class="section-gap">
+    <h2>Daily Accuracy — Last 14 Days</h2>
+    <div class="card">
+      <div id="daily-chart-wrap">
+        <div class="bar-chart" id="daily-chart"></div>
+      </div>
+      <div style="display:flex;gap:20px;margin-top:8px;font-size:12px;color:var(--text3)">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:10px;height:10px;background:var(--accent);border-radius:2px"></div>
+          Active day (% accuracy)
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:10px;height:10px;background:var(--bg4);border-radius:2px"></div>
+          No activity
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Per-domain breakdown -->
+  <div class="grid-2 section-gap">
+    <div>
+      <h2>Domain Accuracy Breakdown</h2>
+      <div class="card">
+        <div id="domain-breakdown"></div>
+      </div>
+    </div>
+
+    <div>
+      <h2>Domain Attempt Distribution</h2>
+      <div class="card" style="padding-top:20px">
+        <canvas id="domain-pie" width="300" height="300" style="display:block;margin:0 auto;max-width:280px"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent attempts -->
+  <div class="section-gap">
+    <h2>Recent Attempts (Last 20)</h2>
+    <div class="card" style="padding:0;overflow:auto">
+      <table class="data-table" id="recent-table">
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>Domain</th>
+            <th>Result</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="recent-tbody"></tbody>
+      </table>
+      <div id="no-attempts" class="no-results" style="display:none">No attempts yet. Start practicing!</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="data/questions.js"></script>
+<script src="data/glossary.js"></script>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  render();
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (confirm('Are you sure you want to reset ALL progress? This cannot be undone.')) {
+      resetAllProgress();
+      location.reload();
+    }
+  });
+});
+
+function render() {
+  const allAttempts = getAllAttempts();
+  const allCorrect = allAttempts.filter(a => a.correct).length;
+  const allPct = allAttempts.length > 0 ? Math.round(allCorrect / allAttempts.length * 100) : 0;
+  const allQ = getAllQuestions();
+  const uniqueAttempted = new Set(allAttempts.map(a => a.qid)).size;
+
+  // Lifetime stats
+  document.getElementById('lifetime-stats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Total Attempts</div>
+      <div class="stat-value">${allAttempts.length}</div>
+      <div class="stat-sub">answer submissions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Correct</div>
+      <div class="stat-value" style="color:var(--green)">${allCorrect}</div>
+      <div class="stat-sub">${allPct}% accuracy</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Unique Questions</div>
+      <div class="stat-value" style="color:var(--accent)">${uniqueAttempted}</div>
+      <div class="stat-sub">of ${allQ.length} total</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Coverage</div>
+      <div class="stat-value" style="color:var(--yellow)">${allQ.length > 0 ? Math.round(uniqueAttempted/allQ.length*100) : 0}%</div>
+      <div class="stat-sub">of question bank</div>
+    </div>`;
+
+  // Daily chart
+  const daily = getDailyStats(14);
+  const chartEl = document.getElementById('daily-chart');
+  chartEl.innerHTML = '';
+  const maxTotal = Math.max(...daily.map(d => d.total), 1);
+
+  daily.forEach(d => {
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    col.style.position = 'relative';
+
+    const pctLabel = d.pct !== null ? `<div class="bar-pct">${d.pct}%</div>` : '';
+    const fillH = d.total > 0 ? Math.max((d.total / maxTotal) * 90, 4) : 4;
+    const fillClass = d.total > 0 ? '' : 'bar-fill-null';
+    const fillColor = d.pct !== null
+      ? `background: hsl(${d.pct * 1.2}, 70%, 55%)`
+      : 'background: var(--bg4)';
+
+    col.innerHTML = `
+      ${pctLabel}
+      <div class="bar-fill ${fillClass}" style="height:${fillH}%;${fillColor};position:relative">
+        <div class="bar-label">${d.label}</div>
+      </div>`;
+    chartEl.appendChild(col);
+  });
+
+  // Domain breakdown
+  const byDomain = getAttemptsByDomain();
+  const domains = [
+    { id: 1, name: 'General Security Concepts' },
+    { id: 2, name: 'Threats, Vulnerabilities & Mitigations' },
+    { id: 3, name: 'Security Architecture' },
+    { id: 4, name: 'Security Operations' },
+    { id: 5, name: 'Security Program Mgmt & Oversight' },
+  ];
+
+  const breakdown = document.getElementById('domain-breakdown');
+  breakdown.innerHTML = '';
+  domains.forEach(d => {
+    const stats = byDomain[d.id] || { total: 0, correct: 0 };
+    const acc = stats.total > 0 ? Math.round(stats.correct / stats.total * 100) : null;
+    const col = domainColor(d.id);
+    breakdown.innerHTML += `
+      <div class="domain-row">
+        <div class="domain-dot" style="background:${col.bg}"></div>
+        <div class="domain-name" style="font-size:13px">${d.name}</div>
+        <div style="flex:0 0 100px">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width:${acc||0}%;background:${col.bg}"></div>
+          </div>
+        </div>
+        <div class="domain-stats">${acc !== null ? acc + '%' : '—'}<br>
+          <span style="font-size:10px;color:var(--text3)">${stats.correct}/${stats.total}</span>
+        </div>
+      </div>`;
+  });
+
+  // Pie chart (canvas)
+  const canvas = document.getElementById('domain-pie');
+  const ctx = canvas.getContext('2d');
+  const domainTotals = domains.map(d => ({ ...d, total: (byDomain[d.id] || {total:0}).total }));
+  const grandTotal = domainTotals.reduce((s, d) => s + d.total, 0);
+
+  if (grandTotal === 0) {
+    ctx.fillStyle = '#1f2937';
+    ctx.beginPath();
+    ctx.arc(150, 150, 120, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#64748b';
+    ctx.font = '14px DM Sans, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('No data yet', 150, 155);
+  } else {
+    const colors = ['#7c3aed','#ea580c','#0891b2','#d97706','#16a34a'];
+    let startAngle = -Math.PI / 2;
+    domainTotals.forEach((d, i) => {
+      if (d.total === 0) return;
+      const sliceAngle = (d.total / grandTotal) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(150, 150);
+      ctx.arc(150, 150, 120, startAngle, startAngle + sliceAngle);
+      ctx.fillStyle = colors[i];
+      ctx.fill();
+      ctx.strokeStyle = '#0a0e1a';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Label
+      const midAngle = startAngle + sliceAngle / 2;
+      const lx = 150 + Math.cos(midAngle) * 80;
+      const ly = 150 + Math.sin(midAngle) * 80;
+      if (sliceAngle > 0.3) {
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 13px Space Mono, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('D' + d.id, lx, ly + 5);
+      }
+      startAngle += sliceAngle;
+    });
+  }
+
+  // Recent attempts
+  const recent = [...allAttempts].reverse().slice(0, 20);
+  const allQ = getAllQuestions();
+  const qMap = {};
+  allQ.forEach(q => qMap[q.id] = q);
+
+  const tbody = document.getElementById('recent-tbody');
+  tbody.innerHTML = '';
+  if (recent.length === 0) {
+    document.getElementById('no-attempts').style.display = '';
+  } else {
+    recent.forEach(a => {
+      const q = qMap[a.qid];
+      const col = domainColor(a.domainId);
+      const time = new Date(a.ts);
+      const timeStr = time.toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+      const qtxt = q ? q.question.slice(0, 70) + (q.question.length > 70 ? '…' : '') : 'Question #' + a.qid;
+      tbody.innerHTML += `
+        <tr>
+          <td class="q-text" style="font-size:13px">${qtxt}</td>
+          <td><span class="domain-badge" style="background:${col.bg}20;color:${col.bg}">
+            <span class="domain-dot" style="background:${col.bg}"></span>D${a.domainId}</span></td>
+          <td><span class="tag ${a.correct ? 'tag-correct' : 'tag-wrong'}">${a.correct ? '✓ Correct' : '✗ Wrong'}</span></td>
+          <td style="color:var(--text3);font-size:12px;font-family:var(--font-mono)">${timeStr}</td>
+        </tr>`;
+    });
+  }
+}
+</script>
+</body>
+</html>

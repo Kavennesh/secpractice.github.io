@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SY0-701 Study | Glossary</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">SY0&#x2011;701 <span>// Study App</span></div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Dashboard</a>
+      <a href="practice.html" class="nav-link">Practice</a>
+      <a href="questions.html" class="nav-link">Question Bank</a>
+      <a href="stats.html" class="nav-link">Stats</a>
+      <a href="glossary.html" class="nav-link">Glossary</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-header">
+    <div class="page-title">Glossary</div>
+    <div class="page-subtitle" id="gloss-count">Loading...</div>
+  </div>
+
+  <!-- Search -->
+  <input class="glossary-search" id="gloss-search" placeholder="🔍 Search terms and definitions..." autocomplete="off" />
+
+  <!-- A-Z filter -->
+  <div class="letter-filters" id="letter-filters"></div>
+
+  <!-- Term list -->
+  <div class="glossary-list" id="gloss-list"></div>
+  <div class="no-results" id="no-gloss" style="display:none">No terms match your search.</div>
+
+</div>
+
+<script src="data/questions.js"></script>
+<script src="data/glossary.js"></script>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  let activeLetter = null;
+
+  // Build letter filter buttons
+  const letters = [...new Set(glossaryTerms.map(t => t.letter))].sort();
+  const filterEl = document.getElementById('letter-filters');
+
+  const allBtn = document.createElement('button');
+  allBtn.className = 'letter-btn active';
+  allBtn.textContent = 'All';
+  allBtn.addEventListener('click', () => {
+    activeLetter = null;
+    document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('active'));
+    allBtn.classList.add('active');
+    render();
+  });
+  filterEl.appendChild(allBtn);
+
+  letters.forEach(l => {
+    const btn = document.createElement('button');
+    btn.className = 'letter-btn';
+    btn.textContent = l;
+    btn.addEventListener('click', () => {
+      activeLetter = l;
+      document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    });
+    filterEl.appendChild(btn);
+  });
+
+  // Search
+  document.getElementById('gloss-search').addEventListener('input', render);
+
+  function highlight(text, query) {
+    if (!query) return text;
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return text.replace(new RegExp(escaped, 'gi'), m => `<mark style="background:rgba(56,189,248,0.25);color:var(--accent);border-radius:2px">${m}</mark>`);
+  }
+
+  function render() {
+    const q = document.getElementById('gloss-search').value.toLowerCase().trim();
+    let filtered = glossaryTerms;
+
+    if (activeLetter) filtered = filtered.filter(t => t.letter === activeLetter);
+    if (q) filtered = filtered.filter(t =>
+      t.term.toLowerCase().includes(q) ||
+      t.short.toLowerCase().includes(q) ||
+      t.definition.toLowerCase().includes(q)
+    );
+
+    filtered = [...filtered].sort((a, b) => a.term.localeCompare(b.term));
+
+    document.getElementById('gloss-count').textContent =
+      `${filtered.length} of ${glossaryTerms.length} terms`;
+
+    const list = document.getElementById('gloss-list');
+    list.innerHTML = '';
+    document.getElementById('no-gloss').style.display = filtered.length === 0 ? '' : 'none';
+
+    filtered.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'gloss-card';
+      card.innerHTML = `
+        <div class="gloss-term">${highlight(t.term, q)}</div>
+        <div class="gloss-short">${highlight(t.short, q)}</div>
+        <div class="gloss-def">${highlight(t.definition, q)}</div>`;
+      list.appendChild(card);
+    });
+  }
+
+  render();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SY0-701 Study | Practice</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">SY0&#x2011;701 <span>// Study App</span></div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Dashboard</a>
+      <a href="practice.html" class="nav-link">Practice</a>
+      <a href="questions.html" class="nav-link">Question Bank</a>
+      <a href="stats.html" class="nav-link">Stats</a>
+      <a href="glossary.html" class="nav-link">Glossary</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-sm">
+
+  <!-- Header & Controls -->
+  <div class="page-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <div class="page-title">Practice</div>
+        <div class="page-subtitle" id="mode-label">All Domains — Random Order</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select class="filter-select" id="domain-filter">
+          <option value="0">All Domains</option>
+          <option value="1">1 — General Security Concepts</option>
+          <option value="2">2 — Threats, Vulnerabilities & Mitigations</option>
+          <option value="3">3 — Security Architecture</option>
+          <option value="4">4 — Security Operations</option>
+          <option value="5">5 — Security Program Mgmt & Oversight</option>
+        </select>
+        <select class="filter-select" id="session-size">
+          <option value="10">10 Questions</option>
+          <option value="20" selected>20 Questions</option>
+          <option value="30">30 Questions</option>
+          <option value="0">All Available</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" id="restart-btn">↺ New Session</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session counter + score -->
+  <div class="session-info">
+    <div class="session-counter" id="q-counter">Question 1 of 20</div>
+    <div class="session-score" id="s-score">Score: 0/0</div>
+  </div>
+
+  <!-- Progress strip -->
+  <div class="progress-bar-wrap" style="margin-bottom:20px">
+    <div class="progress-bar-fill" id="session-progress" style="width:0%;background:var(--accent)"></div>
+  </div>
+
+  <!-- Question card -->
+  <div class="question-card" id="q-card">
+
+    <!-- Domain badge -->
+    <div id="q-domain-badge" style="margin-bottom:14px"></div>
+
+    <!-- Question text -->
+    <div class="question-text" id="q-text">Loading question...</div>
+
+    <!-- Choices -->
+    <div class="choices-grid" id="choices"></div>
+
+    <!-- Explanation -->
+    <div class="explanation" id="explanation"></div>
+
+    <!-- Next button -->
+    <div style="margin-top:20px;display:flex;justify-content:flex-end">
+      <button class="btn btn-primary" id="next-btn" style="display:none">
+        Next Question →
+      </button>
+    </div>
+  </div>
+
+  <!-- Session complete -->
+  <div id="session-complete" style="display:none">
+    <div class="card" style="text-align:center;padding:40px">
+      <div style="font-size:48px;margin-bottom:16px">🎯</div>
+      <div style="font-family:var(--font-mono);font-size:22px;margin-bottom:8px" id="final-score">0/0</div>
+      <div style="color:var(--text2);margin-bottom:8px" id="final-pct">0% accuracy</div>
+      <div style="color:var(--text3);font-size:13px;margin-bottom:28px" id="final-msg"></div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" id="new-session-btn">New Session</button>
+        <a href="index.html" class="btn btn-ghost">Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="data/questions.js"></script>
+<script src="data/glossary.js"></script>
+<script src="app.js"></script>
+<script>
+let sessionQuestions = [];
+let sessionIndex = 0;
+let sessionCorrect = 0;
+let answered = false;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildSession() {
+  const domainId = parseInt(document.getElementById('domain-filter').value);
+  const size = parseInt(document.getElementById('session-size').value);
+  let pool = getAllQuestions();
+  if (domainId > 0) pool = pool.filter(q => q.domainId === domainId);
+  pool = shuffle(pool);
+  sessionQuestions = size > 0 ? pool.slice(0, size) : pool;
+  sessionIndex = 0;
+  sessionCorrect = 0;
+  answered = false;
+
+  const modeLabel = domainId > 0
+    ? `Domain ${domainId} — ${domainColor(domainId).name}`
+    : 'All Domains — Random Order';
+  document.getElementById('mode-label').textContent = modeLabel;
+
+  document.getElementById('session-complete').style.display = 'none';
+  document.getElementById('q-card').style.display = '';
+  showQuestion();
+}
+
+function showQuestion() {
+  answered = false;
+  if (sessionIndex >= sessionQuestions.length) {
+    showComplete();
+    return;
+  }
+
+  const q = sessionQuestions[sessionIndex];
+  const total = sessionQuestions.length;
+  const col = domainColor(q.domainId);
+
+  document.getElementById('q-counter').textContent =
+    `Question ${sessionIndex + 1} of ${total}`;
+  document.getElementById('s-score').textContent =
+    `Score: ${sessionCorrect}/${sessionIndex}`;
+
+  const pct = (sessionIndex / total) * 100;
+  document.getElementById('session-progress').style.width = pct + '%';
+
+  // Domain badge
+  document.getElementById('q-domain-badge').innerHTML =
+    `<span class="domain-badge" style="background:${col.bg}20;color:${col.bg}">
+      <span class="domain-dot" style="background:${col.bg}"></span>
+      Domain ${q.domainId}
+    </span>`;
+
+  document.getElementById('q-text').textContent = q.question;
+
+  // Choices
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = '';
+  ['A','B','C','D'].forEach(key => {
+    if (!q.choices[key]) return;
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerHTML = `<span class="choice-key">${key}</span><span>${q.choices[key]}</span>`;
+    btn.addEventListener('click', () => handleAnswer(key, q));
+    choicesEl.appendChild(btn);
+  });
+
+  // Hide explanation and next button
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('explanation').innerHTML = '';
+  document.getElementById('next-btn').style.display = 'none';
+}
+
+function handleAnswer(chosen, q) {
+  if (answered) return;
+  answered = true;
+
+  const isCorrect = chosen === q.correct;
+  if (isCorrect) sessionCorrect++;
+  recordAttempt(q.id, isCorrect, q.domain, q.domainId);
+
+  // Highlight buttons
+  document.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.disabled = true;
+    const key = btn.querySelector('.choice-key').textContent;
+    if (key === q.correct) btn.classList.add('correct');
+    else if (key === chosen && !isCorrect) btn.classList.add('wrong');
+  });
+
+  // Explanation
+  const expEl = document.getElementById('explanation');
+  expEl.innerHTML = `<strong>${isCorrect ? '✓ Correct!' : '✗ Incorrect.'}</strong> ${q.explanation}`;
+  expEl.classList.add('show');
+
+  document.getElementById('s-score').textContent =
+    `Score: ${sessionCorrect}/${sessionIndex + 1}`;
+
+  document.getElementById('next-btn').style.display = '';
+}
+
+function showComplete() {
+  document.getElementById('q-card').style.display = 'none';
+  document.getElementById('session-complete').style.display = '';
+  const total = sessionQuestions.length;
+  const pct = total > 0 ? Math.round(sessionCorrect / total * 100) : 0;
+  document.getElementById('final-score').textContent = `${sessionCorrect} / ${total}`;
+  document.getElementById('final-pct').textContent = `${pct}% accuracy`;
+  let msg = '';
+  if (pct >= 90) msg = '🏆 Outstanding! You\'re exam-ready in this area.';
+  else if (pct >= 80) msg = '✅ Great work! Keep reviewing weak spots.';
+  else if (pct >= 70) msg = '📚 Solid progress. Review the explanations above.';
+  else msg = '💪 Keep studying — review the concepts and try again.';
+  document.getElementById('final-msg').textContent = msg;
+  document.getElementById('session-progress').style.width = '100%';
+}
+
+// Event listeners
+document.getElementById('next-btn').addEventListener('click', () => {
+  sessionIndex++;
+  showQuestion();
+});
+
+document.getElementById('restart-btn').addEventListener('click', buildSession);
+document.getElementById('new-session-btn').addEventListener('click', buildSession);
+
+document.getElementById('domain-filter').addEventListener('change', buildSession);
+document.getElementById('session-size').addEventListener('change', buildSession);
+
+// Check URL params for domain
+const params = new URLSearchParams(location.search);
+const urlDomain = params.get('domain');
+if (urlDomain) {
+  document.getElementById('domain-filter').value = urlDomain;
+}
+
+// Start
+document.addEventListener('DOMContentLoaded', buildSession);
+</script>
+</body>
+</html>

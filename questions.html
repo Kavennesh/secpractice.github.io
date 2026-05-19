@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SY0-701 Study | Question Bank</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">SY0&#x2011;701 <span>// Study App</span></div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Dashboard</a>
+      <a href="practice.html" class="nav-link">Practice</a>
+      <a href="questions.html" class="nav-link">Question Bank</a>
+      <a href="stats.html" class="nav-link">Stats</a>
+      <a href="glossary.html" class="nav-link">Glossary</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-header">
+    <div class="page-title">Question Bank</div>
+    <div class="page-subtitle" id="q-count-label">Loading...</div>
+  </div>
+
+  <!-- Add Question Form -->
+  <div class="add-form-wrap">
+    <div class="form-title" id="toggle-form">
+      <span>＋</span> Add Custom Question
+      <span style="color:var(--text3);font-size:11px;margin-left:auto">click to expand</span>
+    </div>
+    <div id="add-form" style="display:none">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Question</label>
+          <textarea class="form-textarea" id="f-question" placeholder="Enter the question text..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Choice A</label>
+          <input class="form-input" id="f-a" placeholder="Choice A" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Choice B</label>
+          <input class="form-input" id="f-b" placeholder="Choice B" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Choice C</label>
+          <input class="form-input" id="f-c" placeholder="Choice C" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Choice D</label>
+          <input class="form-input" id="f-d" placeholder="Choice D" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correct Answer</label>
+          <select class="form-select" id="f-correct">
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Domain</label>
+          <select class="form-select" id="f-domain">
+            <option value="1">1 — General Security Concepts</option>
+            <option value="2">2 — Threats, Vulnerabilities & Mitigations</option>
+            <option value="3">3 — Security Architecture</option>
+            <option value="4">4 — Security Operations</option>
+            <option value="5">5 — Security Program Mgmt & Oversight</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Explanation</label>
+          <textarea class="form-textarea" id="f-explanation" placeholder="Explain why the correct answer is correct and why distractors are wrong..."></textarea>
+        </div>
+        <div class="form-group full">
+          <button class="btn btn-primary" id="save-q-btn">Save Question</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <input class="filter-input" id="search-input" placeholder="🔍 Search questions..." />
+    <select class="filter-select" id="filter-domain">
+      <option value="0">All Domains</option>
+      <option value="1">1 — General Security Concepts</option>
+      <option value="2">2 — Threats, Vulnerabilities & Mitigations</option>
+      <option value="3">3 — Security Architecture</option>
+      <option value="4">4 — Security Operations</option>
+      <option value="5">5 — Security Program Mgmt & Oversight</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:8px;color:var(--text2);font-size:14px;cursor:pointer">
+      <input type="checkbox" id="filter-wrong" style="width:14px;height:14px;cursor:pointer" />
+      Got wrong before
+    </label>
+  </div>
+
+  <!-- Table -->
+  <div class="card" style="padding:0;overflow:auto">
+    <table class="data-table" id="q-table">
+      <thead>
+        <tr>
+          <th style="width:40px">#</th>
+          <th>Question</th>
+          <th>Domain</th>
+          <th>Correct</th>
+          <th style="width:80px">My Record</th>
+          <th style="width:80px">Action</th>
+        </tr>
+      </thead>
+      <tbody id="q-tbody"></tbody>
+    </table>
+    <div id="no-results" class="no-results" style="display:none">No questions match your filters.</div>
+  </div>
+
+</div>
+
+<!-- Detail modal -->
+<div id="detail-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;overflow-y:auto;padding:40px 20px">
+  <div style="max-width:640px;margin:0 auto;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;position:relative">
+    <button id="close-detail" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer">✕</button>
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<script src="data/questions.js"></script>
+<script src="data/glossary.js"></script>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  // Toggle form
+  document.getElementById('toggle-form').addEventListener('click', () => {
+    const form = document.getElementById('add-form');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Save custom question
+  document.getElementById('save-q-btn').addEventListener('click', () => {
+    const q = document.getElementById('f-question').value.trim();
+    const a = document.getElementById('f-a').value.trim();
+    const b = document.getElementById('f-b').value.trim();
+    const c = document.getElementById('f-c').value.trim();
+    const d = document.getElementById('f-d').value.trim();
+    const correct = document.getElementById('f-correct').value;
+    const domainId = parseInt(document.getElementById('f-domain').value);
+    const explanation = document.getElementById('f-explanation').value.trim();
+
+    if (!q || !a || !b || !c || !d || !explanation) {
+      showToast('⚠️ Please fill in all fields');
+      return;
+    }
+
+    const domainNames = {1:'General Security Concepts',2:'Threats, Vulnerabilities & Mitigations',
+      3:'Security Architecture',4:'Security Operations',5:'Security Program Mgmt & Oversight'};
+
+    saveCustomQuestion({
+      domainId, domain: domainNames[domainId],
+      question: q,
+      choices: { A: a, B: b, C: c, D: d },
+      correct, explanation
+    });
+
+    // Clear form
+    ['f-question','f-a','f-b','f-c','f-d','f-explanation'].forEach(id =>
+      document.getElementById(id).value = '');
+
+    showToast('✅ Question saved!');
+    renderTable();
+  });
+
+  // Render table
+  function renderTable() {
+    const all = getAllQuestions();
+    const wrongIds = new Set(getWrongQuestionIds().map(String));
+    const attempts = getAllAttempts();
+
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const domainFilter = parseInt(document.getElementById('filter-domain').value);
+    const wrongOnly = document.getElementById('filter-wrong').checked;
+
+    let filtered = all.filter(q => {
+      if (domainFilter > 0 && q.domainId !== domainFilter) return false;
+      if (wrongOnly && !wrongIds.has(String(q.id))) return false;
+      if (searchTerm) {
+        const text = (q.question + ' ' + Object.values(q.choices).join(' ')).toLowerCase();
+        if (!text.includes(searchTerm)) return false;
+      }
+      return true;
+    });
+
+    document.getElementById('q-count-label').textContent =
+      `${filtered.length} of ${all.length} questions`;
+
+    const tbody = document.getElementById('q-tbody');
+    tbody.innerHTML = '';
+
+    filtered.forEach((q, idx) => {
+      const col = domainColor(q.domainId);
+      // Find attempts for this question
+      const qAttempts = attempts.filter(a => String(a.qid) === String(q.id));
+      const qCorrect = qAttempts.filter(a => a.correct).length;
+      const isCustom = typeof q.id === 'string' && q.id.startsWith('c');
+
+      let recordHTML = '<span style="color:var(--text3);font-size:12px">No data</span>';
+      if (qAttempts.length > 0) {
+        const pct = Math.round(qCorrect / qAttempts.length * 100);
+        const cls = pct >= 80 ? 'tag-correct' : 'tag-wrong';
+        recordHTML = `<span class="tag ${cls}">${pct}% (${qAttempts.length})</span>`;
+      }
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="color:var(--text3);font-family:var(--font-mono);font-size:12px">${idx + 1}</td>
+        <td class="q-text">${q.question.slice(0, 90)}${q.question.length > 90 ? '…' : ''}</td>
+        <td><span class="domain-badge" style="background:${col.bg}20;color:${col.bg}">
+          <span class="domain-dot" style="background:${col.bg}"></span>D${q.domainId}</span>
+          ${isCustom ? '<span class="tag" style="background:rgba(56,189,248,0.15);color:var(--accent);margin-left:4px">Custom</span>' : ''}
+        </td>
+        <td><span style="font-family:var(--font-mono);font-size:13px;color:var(--green)">${q.correct}</span></td>
+        <td>${recordHTML}</td>
+        <td><button class="btn btn-ghost btn-sm view-btn" data-id="${q.id}">View</button></td>`;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('no-results').style.display = filtered.length === 0 ? '' : 'none';
+  }
+
+  // View modal
+  document.getElementById('q-tbody').addEventListener('click', e => {
+    const btn = e.target.closest('.view-btn');
+    if (!btn) return;
+    const qid = btn.dataset.id;
+    const all = getAllQuestions();
+    const q = all.find(q => String(q.id) === String(qid));
+    if (!q) return;
+    const col = domainColor(q.domainId);
+
+    document.getElementById('detail-content').innerHTML = `
+      <div class="domain-badge" style="background:${col.bg}20;color:${col.bg};margin-bottom:16px">
+        <span class="domain-dot" style="background:${col.bg}"></span>Domain ${q.domainId} — ${q.domain}
+      </div>
+      <div class="question-text" style="font-size:16px;margin-bottom:20px">${q.question}</div>
+      <div class="choices-grid">
+        ${['A','B','C','D'].filter(k => q.choices[k]).map(k => `
+          <div class="choice-btn ${k === q.correct ? 'correct' : ''}" style="cursor:default">
+            <span class="choice-key">${k}</span>
+            <span>${q.choices[k]}</span>
+          </div>`).join('')}
+      </div>
+      <div class="explanation show" style="margin-top:16px">
+        <strong>Explanation:</strong> ${q.explanation}
+      </div>
+      <div style="margin-top:20px">
+        <a href="practice.html?domain=${q.domainId}" class="btn btn-ghost btn-sm">Practice This Domain</a>
+      </div>`;
+
+    document.getElementById('detail-overlay').style.display = '';
+  });
+
+  document.getElementById('close-detail').addEventListener('click', () => {
+    document.getElementById('detail-overlay').style.display = 'none';
+  });
+  document.getElementById('detail-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('detail-overlay'))
+      document.getElementById('detail-overlay').style.display = 'none';
+  });
+
+  // Filter listeners
+  document.getElementById('search-input').addEventListener('input', renderTable);
+  document.getElementById('filter-domain').addEventListener('change', renderTable);
+  document.getElementById('filter-wrong').addEventListener('change', renderTable);
+
+  renderTable();
+});
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+</script>
+</body>
+</html>

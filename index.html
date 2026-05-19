@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SY0-701 Study | Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">SY0&#x2011;701 <span>// Study App</span></div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Dashboard</a>
+      <a href="practice.html" class="nav-link">Practice</a>
+      <a href="questions.html" class="nav-link">Question Bank</a>
+      <a href="stats.html" class="nav-link">Stats</a>
+      <a href="glossary.html" class="nav-link">Glossary</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-title">Dashboard</div>
+    <div class="page-subtitle">CompTIA Security+ SY0-701 — Exam: June 14, 2026</div>
+  </div>
+
+  <!-- Countdown + Today Stats -->
+  <div class="grid-2 section-gap" id="top-row">
+
+    <!-- Countdown -->
+    <div class="card">
+      <div class="stat-label">⏳ Time Until Exam</div>
+      <div class="countdown-container" id="countdown">
+        <div class="countdown-unit">
+          <div class="countdown-num" id="cd-days">--</div>
+          <div class="countdown-label">Days</div>
+        </div>
+        <div class="countdown-unit">
+          <div class="countdown-num" id="cd-hours">--</div>
+          <div class="countdown-label">Hours</div>
+        </div>
+        <div class="countdown-unit">
+          <div class="countdown-num" id="cd-min">--</div>
+          <div class="countdown-label">Mins</div>
+        </div>
+      </div>
+      <div style="margin-top:16px">
+        <a href="practice.html" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;">
+          ▶ Start Practice Session
+        </a>
+      </div>
+    </div>
+
+    <!-- Today's stats -->
+    <div class="card">
+      <div class="stat-label">📅 Today's Activity</div>
+      <div class="grid-3" style="margin-top:12px;" id="today-stats">
+        <div>
+          <div class="stat-value" id="today-attempted">0</div>
+          <div class="stat-sub">Attempted</div>
+        </div>
+        <div>
+          <div class="stat-value" id="today-correct" style="color:var(--green)">0</div>
+          <div class="stat-sub">Correct</div>
+        </div>
+        <div>
+          <div class="stat-value" id="today-pct" style="color:var(--accent)">—</div>
+          <div class="stat-sub">Accuracy</div>
+        </div>
+      </div>
+      <hr class="divider" style="margin:16px 0"/>
+      <div class="stat-label">📊 All-Time</div>
+      <div class="grid-3" style="margin-top:12px;">
+        <div>
+          <div class="stat-value" id="all-attempted">0</div>
+          <div class="stat-sub">Attempted</div>
+        </div>
+        <div>
+          <div class="stat-value" id="all-correct" style="color:var(--green)">0</div>
+          <div class="stat-sub">Correct</div>
+        </div>
+        <div>
+          <div class="stat-value" id="all-pct" style="color:var(--accent)">—</div>
+          <div class="stat-sub">Accuracy</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Domain Progress -->
+  <div class="section-gap">
+    <h2>Domain Progress</h2>
+    <div class="card" id="domain-progress-card">
+      <div id="domain-progress-list"></div>
+    </div>
+  </div>
+
+  <!-- Weakest Domains -->
+  <div class="section-gap">
+    <h2>🎯 Focus Areas</h2>
+    <div id="weak-domains" class="grid-3"></div>
+  </div>
+
+</div>
+
+<script src="data/questions.js"></script>
+<script src="data/glossary.js"></script>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  // Countdown
+  function updateCountdown() {
+    const cd = getCountdown();
+    document.getElementById('cd-days').textContent = cd.days;
+    document.getElementById('cd-hours').textContent = String(cd.hours).padStart(2,'0');
+    document.getElementById('cd-min').textContent = String(cd.minutes).padStart(2,'0');
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 30000);
+
+  // Today stats
+  const todayAttempts = getTodayAttempts();
+  const todayCorrect = todayAttempts.filter(a => a.correct).length;
+  document.getElementById('today-attempted').textContent = todayAttempts.length;
+  document.getElementById('today-correct').textContent = todayCorrect;
+  document.getElementById('today-pct').textContent = todayAttempts.length > 0
+    ? Math.round(todayCorrect / todayAttempts.length * 100) + '%' : '—';
+
+  // All-time stats
+  const allAttempts = getAllAttempts();
+  const allCorrect = allAttempts.filter(a => a.correct).length;
+  document.getElementById('all-attempted').textContent = allAttempts.length;
+  document.getElementById('all-correct').textContent = allCorrect;
+  document.getElementById('all-pct').textContent = allAttempts.length > 0
+    ? Math.round(allCorrect / allAttempts.length * 100) + '%' : '—';
+
+  // Domain progress
+  const domains = [
+    { id: 1, name: 'General Security Concepts', pct: 12 },
+    { id: 2, name: 'Threats, Vulnerabilities & Mitigations', pct: 22 },
+    { id: 3, name: 'Security Architecture', pct: 18 },
+    { id: 4, name: 'Security Operations', pct: 28 },
+    { id: 5, name: 'Security Program Mgmt & Oversight', pct: 20 },
+  ];
+
+  const byDomain = getAttemptsByDomain();
+  const list = document.getElementById('domain-progress-list');
+
+  domains.forEach(d => {
+    const stats = byDomain[d.id] || { total: 0, correct: 0 };
+    const acc = stats.total > 0 ? Math.round(stats.correct / stats.total * 100) : null;
+    const col = domainColor(d.id);
+
+    list.innerHTML += `
+      <div class="domain-row">
+        <div class="domain-dot" style="background:${col.bg};width:10px;height:10px;border-radius:50%;flex-shrink:0"></div>
+        <div class="domain-name">${d.name}</div>
+        <div style="flex:0 0 180px">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width:${acc !== null ? acc : 0}%;background:${col.bg}"></div>
+          </div>
+        </div>
+        <div class="domain-stats">${acc !== null ? acc + '%' : 'No data'} <span style="color:var(--text3);font-size:11px;">(${stats.total})</span></div>
+        <a href="practice.html?domain=${d.id}" class="btn btn-ghost btn-sm">Study</a>
+      </div>`;
+  });
+
+  // Weakest domains
+  const weak = getWeakestDomains(3);
+  const weakContainer = document.getElementById('weak-domains');
+  if (weak.length === 0) {
+    weakContainer.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--text3)">
+      Complete a few questions to see your weak areas!</div>`;
+  } else {
+    weak.forEach(d => {
+      const col = domainColor(d.domainId);
+      const acc = Math.round(d.correct / d.total * 100);
+      weakContainer.innerHTML += `
+        <div class="card" style="border-left: 3px solid ${col.bg}">
+          <div class="domain-dot" style="background:${col.bg};display:inline-block;margin-bottom:8px"></div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:8px">${d.domain}</div>
+          <div class="stat-value" style="font-size:28px;color:${col.bg}">${acc}%</div>
+          <div class="stat-sub">${d.correct}/${d.total} correct</div>
+          <a href="practice.html?domain=${d.domainId}" class="btn btn-ghost btn-sm" style="margin-top:14px;width:100%">Study Now →</a>
+        </div>`;
+    });
+  }
+
+});
+</script>
+</body>
+</html>
