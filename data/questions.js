@@ -8744,6 +8744,430 @@ const questions = [
     correct: "C",
     explanation: `BYOD (Bring Your Own Device) is a model where the employee owns the mobile device but can also use the same device for work. Incorrect answers — A. CYOD The CYOD (Choose Your Own Device) model requires the corporation to purchase and own the device, but the user can select the device they would prefer to use. B. MDM An MDM (Mobile Device Manager) is used to manage company-owned and user-owned mobile devices. D. COPE COPE (Corporately Owned, Personally Enabled) devices are purchased by the company and deployed to the users. The organization keeps full control of the device and may allow the recipient to use the device for both business and personal use.`
   },
+
+  // ============================================================
+  // Scenario-based practice questions (added set) — IDs 584-611
+  // ============================================================
+  {
+    id: 584,
+    domain: "General Security Concepts",
+    domainId: 1,
+    chapter: 1,
+    question: `A company is about to deploy a major firewall ruleset update during a scheduled maintenance window. The change advisory board wants assurance that if the update causes a network outage, the team can quickly return the firewall to its previous working state. Which element of the change management process provides this assurance?`,
+    choices: {
+      A: `Impact analysis`,
+      B: `Backout plan`,
+      C: `Standard operating procedure`,
+      D: `Stakeholder approval`
+    },
+    correct: "B",
+    explanation: `A backout plan (also called a rollback plan) documents exactly how to revert a change and return the system to its previous known-good state if the change fails or causes problems. Impact analysis assesses risk before the change, an SOP defines repeatable procedures, and stakeholder approval authorizes the change — none of those restore service after a failed change.`
+  },
+  {
+    id: 585,
+    domain: "General Security Concepts",
+    domainId: 1,
+    chapter: 1,
+    question: `A security architect is implementing a zero trust architecture. They want every access request to be evaluated against policy — considering user identity, device health, and location — before a session is granted. Which zero trust component actually makes the allow-or-deny decision?`,
+    choices: {
+      A: `Policy Enforcement Point (PEP)`,
+      B: `Policy Administrator (PA)`,
+      C: `Policy Engine (PE)`,
+      D: `Implicit trust zone`
+    },
+    correct: "C",
+    explanation: `In the zero trust control plane, the Policy Engine (PE) makes the decision to grant, deny, or revoke access. The Policy Administrator (PA) carries out that decision by establishing or tearing down the communication path, and the Policy Enforcement Point (PEP) is the gateway in the data plane that enforces it. An implicit trust zone is the area beyond the PEP where traffic is trusted.`
+  },
+  {
+    id: 586,
+    domain: "General Security Concepts",
+    domainId: 1,
+    chapter: 1,
+    question: `Maria emails a signed contract to a vendor. She needs the vendor to be able to verify that the contract genuinely originated from her and that it was not altered in transit. Which cryptographic technique provides both integrity and proof of origin?`,
+    choices: {
+      A: `Symmetric encryption with a shared key`,
+      B: `A digital signature`,
+      C: `Hashing the document`,
+      D: `Steganography`
+    },
+    correct: "B",
+    explanation: `A digital signature is created by hashing the document and encrypting that hash with the sender's private key. The recipient verifies it with the sender's public key, which confirms integrity (the document was not changed) and non-repudiation/authentication (only Maria's private key could have produced it). Hashing alone proves integrity but not origin, and symmetric encryption does not bind the message to a specific sender.`
+  },
+  {
+    id: 587,
+    domain: "General Security Concepts",
+    domainId: 1,
+    chapter: 1,
+    question: `A company posts large signs at its entrance stating that the premises are monitored by security cameras and that trespassers will be prosecuted. What functional type of security control does the sign itself represent?`,
+    choices: {
+      A: `Detective`,
+      B: `Preventive`,
+      C: `Deterrent`,
+      D: `Corrective`
+    },
+    correct: "C",
+    explanation: `A warning sign is a deterrent control — it discourages an attacker from acting but does nothing to physically stop or detect the act. The cameras themselves are detective, a locked gate would be preventive, and restoring from backup after an incident would be corrective.`
+  },
+  {
+    id: 588,
+    domain: "Threats, Vulnerabilities & Mitigations",
+    domainId: 2,
+    chapter: 2,
+    question: `An employee receives a phone call from someone claiming to be from the IT help desk. The caller manufactures urgency, warning that the employee's account will be locked in 10 minutes unless they immediately read back their password to "verify their identity." What type of social engineering attack is this?`,
+    choices: {
+      A: `Smishing`,
+      B: `Vishing`,
+      C: `Whaling`,
+      D: `Watering hole attack`
+    },
+    correct: "B",
+    explanation: `Vishing (voice phishing) is social engineering conducted over a phone call, here combined with the urgency principle to pressure the victim. Smishing uses SMS text messages, whaling targets high-level executives specifically, and a watering hole attack compromises a website the target group is known to visit.`
+  },
+  {
+    id: 589,
+    domain: "Threats, Vulnerabilities & Mitigations",
+    domainId: 2,
+    chapter: 2,
+    question: `A user reports that all their files now have an unfamiliar extension and a text file is demanding cryptocurrency payment to restore access. The organization maintains tested, offline backups. After isolating the infected host from the network, what is the BEST next step?`,
+    choices: {
+      A: `Pay the ransom to recover the data quickly`,
+      B: `Restore the affected systems from known-good offline backups`,
+      C: `Run antivirus and keep using the system as normal`,
+      D: `Reconnect the host so users can keep working`
+    },
+    correct: "B",
+    explanation: `With tested, offline backups available, the organization should eradicate the ransomware and restore from known-good backups. Paying the ransom funds criminal activity and offers no guarantee of recovery. Continuing to use or reconnecting an infected host risks spreading the infection and destroying evidence.`
+  },
+  {
+    id: 590,
+    domain: "Threats, Vulnerabilities & Mitigations",
+    domainId: 2,
+    chapter: 2,
+    question: `A web application lets users post comments that are stored and later displayed to other visitors. An attacker submits a comment containing a <script> tag. When other users open the page, the script executes in their browsers and steals their session cookies. Which vulnerability is being exploited?`,
+    choices: {
+      A: `SQL injection`,
+      B: `Cross-site request forgery (CSRF)`,
+      C: `Stored cross-site scripting (XSS)`,
+      D: `Directory traversal`
+    },
+    correct: "C",
+    explanation: `This is stored (persistent) cross-site scripting: malicious script is saved on the server and served to every visitor, executing in their browser context. SQL injection targets the database, CSRF tricks an authenticated user's browser into sending unwanted requests, and directory traversal accesses files outside the intended path.`
+  },
+  {
+    id: 591,
+    domain: "Threats, Vulnerabilities & Mitigations",
+    domainId: 2,
+    chapter: 2,
+    question: `Users on a corporate Wi-Fi network begin reporting TLS certificate warnings for trusted sites. An investigation finds an unauthorized device positioned between the clients and the gateway, intercepting and relaying all traffic. Which attack is occurring?`,
+    choices: {
+      A: `On-path (man-in-the-middle) attack`,
+      B: `Replay attack`,
+      C: `Privilege escalation`,
+      D: `Buffer overflow`
+    },
+    correct: "A",
+    explanation: `An on-path attack (formerly "man-in-the-middle") places the attacker between two communicating parties to intercept or alter traffic. The certificate warnings appear because the attacker presents its own certificate instead of the legitimate one. A replay attack retransmits captured valid data, while privilege escalation and buffer overflow are unrelated to traffic interception.`
+  },
+  {
+    id: 592,
+    domain: "Threats, Vulnerabilities & Mitigations",
+    domainId: 2,
+    chapter: 2,
+    question: `An attacker steals a database of password hashes and uses a large precomputed table that maps hashes back to their plaintext values, cracking many passwords almost instantly. The defending organization had hashed passwords but applied no additional random data. Which mitigation would have BEST defeated this attack?`,
+    choices: {
+      A: `Using a faster hashing algorithm`,
+      B: `Salting each password with a unique random value before hashing`,
+      C: `Storing the passwords with reversible encryption`,
+      D: `Requiring password changes every 30 days`
+    },
+    correct: "B",
+    explanation: `Adding a unique, random salt to each password before hashing makes precomputed (rainbow) tables useless, because the attacker would need a separate table for every possible salt. A faster hash actually helps the attacker, reversible encryption is weaker than hashing for stored credentials, and frequent rotation does not stop a stolen hash from being cracked.`
+  },
+  {
+    id: 593,
+    domain: "Threats, Vulnerabilities & Mitigations",
+    domainId: 2,
+    chapter: 2,
+    question: `A company learns that a third-party software library it bundles into its own product contains a publicly known critical vulnerability that was introduced by the upstream vendor. What category of risk does this BEST represent?`,
+    choices: {
+      A: `Zero-day vulnerability`,
+      B: `Insider threat`,
+      C: `Supply chain vulnerability`,
+      D: `Misconfiguration`
+    },
+    correct: "C",
+    explanation: `A flaw inherited from an upstream vendor's component is a supply chain vulnerability — risk introduced through software the organization depends on but does not author. It is not a zero-day because the vulnerability is publicly known, it is not an insider threat (no internal actor), and it is not a misconfiguration (the code itself is flawed).`
+  },
+  {
+    id: 594,
+    domain: "Threats, Vulnerabilities & Mitigations",
+    domainId: 2,
+    chapter: 2,
+    question: `A code review finds that an application verifies a user's permission to a file and then, a brief moment later, opens that file. An attacker who can replace the file in the interval between the check and the open could gain unauthorized access. What type of vulnerability is this?`,
+    choices: {
+      A: `Integer overflow`,
+      B: `Time-of-check to time-of-use (TOCTOU) race condition`,
+      C: `Memory leak`,
+      D: `Improper error handling`
+    },
+    correct: "B",
+    explanation: `This is a time-of-check to time-of-use (TOCTOU) race condition: a security decision is made at one moment but acted upon later, and the state can change in between. An integer overflow involves arithmetic exceeding a variable's capacity, a memory leak is failure to release memory, and improper error handling exposes information through unhandled errors.`
+  },
+  {
+    id: 595,
+    domain: "Security Architecture",
+    domainId: 3,
+    chapter: 3,
+    question: `An organization uses a Software as a Service (SaaS) email platform. A vulnerability in the operating system that the email application runs on is exploited, causing a breach. Under the cloud shared responsibility model, who is responsible for patching that operating system?`,
+    choices: {
+      A: `The customer`,
+      B: `The cloud service provider`,
+      C: `Responsibility is always split evenly`,
+      D: `A managed service provider, by default`
+    },
+    correct: "B",
+    explanation: `In a SaaS model the provider manages the entire stack below the application — including the operating system, hypervisor, and physical infrastructure. The customer is generally responsible only for their data, user accounts, and access configuration. In IaaS the customer would own OS patching, but not in SaaS.`
+  },
+  {
+    id: 596,
+    domain: "Security Architecture",
+    domainId: 3,
+    chapter: 3,
+    question: `A company needs to host a public-facing web server so internet users can reach it, while ensuring those external users cannot directly access the internal LAN where domain controllers reside. Where should the web server be placed?`,
+    choices: {
+      A: `On the internal LAN, protected only by a host-based firewall`,
+      B: `In a screened subnet (DMZ) between the internet and the internal network`,
+      C: `On the same VLAN as the domain controllers`,
+      D: `Directly on the internet with no firewall in front of it`
+    },
+    correct: "B",
+    explanation: `A screened subnet (DMZ) is an isolated network segment for internet-facing servers, separated from the internal LAN by firewall rules. If the web server is compromised, the attacker is still blocked from pivoting directly into the internal network. Placing it on the internal LAN or beside domain controllers would expose critical internal systems.`
+  },
+  {
+    id: 597,
+    domain: "Security Architecture",
+    domainId: 3,
+    chapter: 3,
+    question: `An e-commerce website must remain available even if one of its web servers fails, and incoming customer requests should be spread across several identical servers. Which solution BEST meets this requirement?`,
+    choices: {
+      A: `A load balancer`,
+      B: `A jump server`,
+      C: `A forward proxy`,
+      D: `A honeypot`
+    },
+    correct: "A",
+    explanation: `A load balancer distributes incoming traffic across multiple backend servers and can detect a failed server and stop sending it requests, providing both scalability and high availability. A jump server is a hardened host for administrative access, a forward proxy mediates outbound client traffic, and a honeypot is a decoy to attract attackers.`
+  },
+  {
+    id: 598,
+    domain: "Security Architecture",
+    domainId: 3,
+    chapter: 3,
+    question: `Developers need a non-production test environment populated with realistic-looking data, but real customer Social Security numbers must never appear. The substituted values should be irreversible and not mathematically derived from the originals. Which data protection technique is MOST appropriate?`,
+    choices: {
+      A: `Data masking`,
+      B: `Tokenization`,
+      C: `Symmetric encryption`,
+      D: `Digital signing`
+    },
+    correct: "A",
+    explanation: `Data masking replaces sensitive values with realistic but fictitious data and is well suited to non-production environments because the substitution is one-way and cannot be reversed. Tokenization keeps a reversible mapping (a token vault) and is aimed at production use such as payment processing, while encryption is reversible with the key. Signing provides integrity, not concealment.`
+  },
+  {
+    id: 599,
+    domain: "Security Architecture",
+    domainId: 3,
+    chapter: 3,
+    question: `A company performs a full backup every Sunday and a differential backup each day Monday through Saturday. A server fails on Thursday afternoon, before that day's backup runs. How many backup sets are required to fully restore the server?`,
+    choices: {
+      A: `One`,
+      B: `Two`,
+      C: `Four`,
+      D: `Seven`
+    },
+    correct: "B",
+    explanation: `A differential backup captures everything changed since the last full backup. Restoring requires only the most recent full backup (Sunday) plus the most recent differential backup (Wednesday) — two sets in total. Incremental backups, by contrast, would require the full backup plus every incremental since.`
+  },
+  {
+    id: 600,
+    domain: "Security Operations",
+    domainId: 4,
+    chapter: 4,
+    question: `A security analyst has confirmed an active malware infection on a workstation. Following the standard incident response lifecycle, what should the analyst focus on immediately after detection and analysis?`,
+    choices: {
+      A: `Eradication`,
+      B: `Containment`,
+      C: `Recovery`,
+      D: `Lessons learned`
+    },
+    correct: "B",
+    explanation: `The incident response lifecycle is Preparation; Detection and Analysis; Containment, Eradication, and Recovery; and Post-incident Activity (lessons learned). Once the incident is confirmed, containment comes first — isolating the host to limit the damage — before eradicating the malware and recovering the system.`
+  },
+  {
+    id: 601,
+    domain: "Security Operations",
+    domainId: 4,
+    chapter: 4,
+    question: `A security team wants a single platform that collects log data from servers, firewalls, and endpoints, correlates events across those sources, and raises alerts when it detects suspicious patterns. Which tool provides this capability?`,
+    choices: {
+      A: `A security information and event management (SIEM) system`,
+      B: `A data loss prevention (DLP) system`,
+      C: `A vulnerability scanner`,
+      D: `A forward proxy`
+    },
+    correct: "A",
+    explanation: `A SIEM aggregates and normalizes logs from many sources, correlates events to find patterns a single source would miss, and generates alerts for analysts. DLP focuses on preventing data exfiltration, a vulnerability scanner identifies weaknesses, and a forward proxy controls outbound web traffic.`
+  },
+  {
+    id: 602,
+    domain: "Security Operations",
+    domainId: 4,
+    chapter: 4,
+    question: `An employee transfers from the finance department to the marketing department. Months later, an audit discovers the employee still has full access to financial systems they no longer need. Which practice would have BEST caught and corrected this?`,
+    choices: {
+      A: `Mandatory vacation`,
+      B: `Regular user access reviews (recertification)`,
+      C: `Separation of duties`,
+      D: `Multi-factor authentication`
+    },
+    correct: "B",
+    explanation: `This is privilege creep — accumulated access that is no longer appropriate. Regular access reviews (recertification) periodically validate that each user's permissions still match their current role and remove anything excess. Mandatory vacation and separation of duties address fraud detection and collusion, and MFA strengthens authentication but does not adjust authorization.`
+  },
+  {
+    id: 603,
+    domain: "Security Operations",
+    domainId: 4,
+    chapter: 4,
+    question: `Before placing a new server into production, an administrator removes unused applications, closes unnecessary network ports, and disables the default administrator account. What is this overall process called?`,
+    choices: {
+      A: `Patch management`,
+      B: `System hardening`,
+      C: `Sandboxing`,
+      D: `Penetration testing`
+    },
+    correct: "B",
+    explanation: `System hardening is the process of reducing a system's attack surface by removing or disabling anything not required — unused software, open ports, and default accounts. Patch management specifically addresses applying updates, sandboxing isolates untrusted code, and penetration testing actively probes for weaknesses rather than removing them.`
+  },
+  {
+    id: 604,
+    domain: "Security Operations",
+    domainId: 4,
+    chapter: 4,
+    question: `A login system requires the user to enter a password and then type in a one-time code generated by a physical hardware token they carry. Which two authentication factors are in use?`,
+    choices: {
+      A: `Something you know and something you are`,
+      B: `Something you know and something you have`,
+      C: `Something you have and somewhere you are`,
+      D: `Something you are and something you do`
+    },
+    correct: "B",
+    explanation: `A password is "something you know" and a physical hardware token is "something you have," so this is genuine multi-factor authentication using two different factor categories. "Something you are" refers to biometrics, "somewhere you are" to location, and "something you do" to behavioral patterns.`
+  },
+  {
+    id: 605,
+    domain: "Security Operations",
+    domainId: 4,
+    chapter: 4,
+    question: `A forensic investigator must collect evidence from a compromised system that is still powered on and running. According to the order of volatility, which source of evidence should be collected FIRST?`,
+    choices: {
+      A: `Files on the system's hard drive`,
+      B: `The contents of CPU registers, cache, and RAM`,
+      C: `Archived data on backup tapes`,
+      D: `Logs already forwarded to a remote SIEM`
+    },
+    correct: "B",
+    explanation: `The order of volatility dictates collecting the most fleeting data first. CPU registers, cache, and RAM are lost the instant the system loses power, so they must be captured before disk contents. Disk data is more stable, and backups and remote logs are the most persistent and least volatile.`
+  },
+  {
+    id: 606,
+    domain: "Security Operations",
+    domainId: 4,
+    chapter: 4,
+    question: `A vulnerability scanner reports that a server is affected by a particular flaw. The security team manually verifies that the server is fully patched and that the reported flaw does not actually exist on it. How should this scan result be classified?`,
+    choices: {
+      A: `True positive`,
+      B: `False positive`,
+      C: `False negative`,
+      D: `True negative`
+    },
+    correct: "B",
+    explanation: `A false positive is when a tool reports a problem that does not actually exist. A true positive would be a real flaw correctly reported, a false negative would be a real flaw the scanner missed, and a true negative would be correctly reporting no flaw where none exists.`
+  },
+  {
+    id: 607,
+    domain: "Security Program Mgmt & Oversight",
+    domainId: 5,
+    chapter: 5,
+    question: `After analyzing a particular low-impact risk, a company determines that the cost of any mitigation would exceed the potential loss. Leadership formally documents the decision to take no further action and signs off on it. Which risk treatment strategy is being applied?`,
+    choices: {
+      A: `Risk transference`,
+      B: `Risk avoidance`,
+      C: `Risk mitigation`,
+      D: `Risk acceptance`
+    },
+    correct: "D",
+    explanation: `Risk acceptance is the documented, formally approved decision to take no action and absorb a risk, typically when mitigation would cost more than the expected loss. Transference shifts the risk to a third party (such as insurance), avoidance eliminates the activity causing the risk, and mitigation reduces the risk with controls.`
+  },
+  {
+    id: 608,
+    domain: "Security Program Mgmt & Oversight",
+    domainId: 5,
+    chapter: 5,
+    question: `A company is contracting a managed service provider and wants a binding agreement that defines guaranteed uptime, maximum response times, and financial penalties if those targets are missed. Which document specifies these measurable performance commitments?`,
+    choices: {
+      A: `Memorandum of understanding (MOU)`,
+      B: `Service level agreement (SLA)`,
+      C: `Non-disclosure agreement (NDA)`,
+      D: `Business partners agreement (BPA)`
+    },
+    correct: "B",
+    explanation: `A service level agreement (SLA) defines the specific, measurable level of service expected from a provider, including uptime guarantees, response times, and remedies or penalties for missed targets. An MOU expresses general intent without strict enforceability, an NDA protects confidential information, and a BPA governs the broader relationship between business partners.`
+  },
+  {
+    id: 609,
+    domain: "Security Program Mgmt & Oversight",
+    domainId: 5,
+    chapter: 5,
+    question: `A server asset is valued at $50,000. A specific threat is expected to destroy 20% of the asset's value each time it occurs, and analysts estimate it will occur twice per year. What is the annualized loss expectancy (ALE)?`,
+    choices: {
+      A: `$10,000`,
+      B: `$20,000`,
+      C: `$50,000`,
+      D: `$100,000`
+    },
+    correct: "B",
+    explanation: `Single loss expectancy (SLE) = asset value × exposure factor = $50,000 × 0.20 = $10,000. Annualized loss expectancy (ALE) = SLE × annualized rate of occurrence (ARO) = $10,000 × 2 = $20,000.`
+  },
+  {
+    id: 610,
+    domain: "Security Program Mgmt & Oversight",
+    domainId: 5,
+    chapter: 5,
+    question: `Within a data governance program, which role is responsible for assigning a data set's sensitivity classification and is ultimately accountable for how that data is protected and used?`,
+    choices: {
+      A: `Data custodian`,
+      B: `Data owner`,
+      C: `Data processor`,
+      D: `Data subject`
+    },
+    correct: "B",
+    explanation: `The data owner — typically a senior business leader — classifies the data and bears ultimate accountability for its protection. The data custodian implements and maintains the technical controls the owner specifies, the data processor handles data on behalf of others, and the data subject is the individual the personal data describes.`
+  },
+  {
+    id: 611,
+    domain: "Security Program Mgmt & Oversight",
+    domainId: 5,
+    chapter: 5,
+    question: `A company collects and processes the personal data of customers who reside in the European Union. Which regulation primarily governs how that personal data must be collected, handled, and protected?`,
+    choices: {
+      A: `HIPAA`,
+      B: `PCI DSS`,
+      C: `GDPR`,
+      D: `SOX`
+    },
+    correct: "C",
+    explanation: `The General Data Protection Regulation (GDPR) governs the processing of personal data of individuals in the European Union. HIPAA covers protected health information in the United States, PCI DSS is a contractual standard for payment card data, and SOX addresses financial reporting controls for public companies.`
+  },
 ];
 
 // Custom questions stored in localStorage are merged at runtime

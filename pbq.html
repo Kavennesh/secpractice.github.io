@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SY0-701 Study | Performance-Based Questions</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">SY0&#x2011;701 <span>// Study App</span></div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Dashboard</a>
+      <a href="practice.html" class="nav-link">Practice</a>
+      <a href="exam.html" class="nav-link">Mock Exam</a>
+      <a href="pbq.html" class="nav-link">PBQs</a>
+      <a href="questions.html" class="nav-link">Question Bank</a>
+      <a href="stats.html" class="nav-link">Stats</a>
+      <a href="glossary.html" class="nav-link">Glossary</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-sm">
+
+  <div class="page-header">
+    <div class="page-title">Performance-Based Questions</div>
+    <div class="page-subtitle">Interactive, scenario-driven tasks — drag-free drag-and-drop style</div>
+  </div>
+
+  <!-- Session info -->
+  <div class="session-info">
+    <div class="session-counter" id="pbq-counter">PBQ 1 of 10</div>
+    <div class="session-score" id="pbq-score">Score: —</div>
+  </div>
+
+  <div class="progress-bar-wrap" style="margin-bottom:20px">
+    <div class="progress-bar-fill" id="pbq-progress" style="width:0%;background:var(--accent)"></div>
+  </div>
+
+  <!-- PBQ card -->
+  <div class="question-card" id="pbq-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px">
+      <div id="pbq-domain-badge"></div>
+      <span class="tag" id="pbq-type-tag" style="background:var(--bg4);color:var(--text2)">TYPE</span>
+    </div>
+
+    <div style="font-family:var(--font-mono);font-size:15px;color:var(--text);font-weight:700;margin-bottom:10px" id="pbq-title">Title</div>
+
+    <div class="pbq-scenario" id="pbq-scenario">Scenario…</div>
+
+    <div class="question-text" id="pbq-question" style="font-size:15px;margin:16px 0">Question…</div>
+
+    <!-- Interactive working area -->
+    <div id="pbq-workspace"></div>
+
+    <!-- Explanation -->
+    <div class="explanation" id="pbq-explanation"></div>
+
+    <!-- Controls -->
+    <div style="margin-top:22px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-ghost" id="pbq-reset">↺ Reset</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" id="pbq-check">Check Answer</button>
+        <button class="btn btn-primary" id="pbq-next" style="display:none">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completion -->
+  <div id="pbq-complete" style="display:none">
+    <div class="card" style="text-align:center;padding:40px">
+      <div style="font-size:48px;margin-bottom:16px">🧩</div>
+      <div style="font-family:var(--font-mono);font-size:22px;margin-bottom:6px" id="pbq-final-score">0%</div>
+      <div style="color:var(--text2);margin-bottom:8px" id="pbq-final-detail"></div>
+      <div style="color:var(--text3);font-size:13px;margin-bottom:28px" id="pbq-final-msg"></div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" id="pbq-restart">Restart PBQs</button>
+        <a href="exam.html" class="btn btn-ghost">Mock Exam</a>
+        <a href="index.html" class="btn btn-ghost">Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="data/pbq.js"></script>
+<script src="app.js"></script>
+<script>
+// ============================================================
+// Performance-Based Questions — interactive engine
+// ============================================================
+
+const TYPE_LABEL = {
+  multi: 'SELECT ALL THAT APPLY',
+  match: 'MATCHING',
+  order: 'ORDERING'
+};
+
+let pbqList = [];
+let idx = 0;
+let checked = false;
+let scores = [];     // fraction (0-1) earned per PBQ
+let work = null;     // current working state
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startSession() {
+  pbqList = shuffle(pbqs);
+  idx = 0;
+  scores = [];
+  document.getElementById('pbq-complete').style.display = 'none';
+  document.getElementById('pbq-card').style.display = '';
+  render();
+}
+
+function render() {
+  checked = false;
+  const p = pbqList[idx];
+  const col = domainColor(p.domainId);
+
+  document.getElementById('pbq-counter').textContent = `PBQ ${idx + 1} of ${pbqList.length}`;
+  document.getElementById('pbq-score').textContent = scores.length
+    ? `Score: ${Math.round(avgScore() * 100)}%` : 'Score: —';
+  document.getElementById('pbq-progress').style.width = (idx / pbqList.length * 100) + '%';
+
+  document.getElementById('pbq-domain-badge').innerHTML =
+    `<span class="domain-badge" style="background:${col.bg}20;color:${col.bg}">
+      <span class="domain-dot" style="background:${col.bg}"></span>Domain ${p.domainId}
+    </span>`;
+  document.getElementById('pbq-type-tag').textContent = TYPE_LABEL[p.type] || p.type;
+  document.getElementById('pbq-title').textContent = p.title;
+  document.getElementById('pbq-scenario').textContent = p.scenario;
+  document.getElementById('pbq-question').textContent = p.question;
+
+  const exp = document.getElementById('pbq-explanation');
+  exp.classList.remove('show');
+  exp.innerHTML = '';
+
+  document.getElementById('pbq-check').style.display = '';
+  document.getElementById('pbq-check').disabled = false;
+  document.getElementById('pbq-next').style.display = 'none';
+  document.getElementById('pbq-next').textContent =
+    idx === pbqList.length - 1 ? 'See Results →' : 'Next →';
+
+  buildWorkspace(p);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function avgScore() {
+  if (!scores.length) return 0;
+  return scores.reduce((a, b) => a + b, 0) / scores.length;
+}
+
+// ---- Build the interactive workspace per type ----
+function buildWorkspace(p) {
+  const ws = document.getElementById('pbq-workspace');
+  ws.innerHTML = '';
+
+  if (p.type === 'multi') {
+    work = { selected: new Set() };
+    const hint = document.createElement('div');
+    hint.className = 'pbq-hint';
+    hint.textContent = `Choose ${p.selectCount}.`;
+    ws.appendChild(hint);
+
+    p.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.dataset.i = i;
+      btn.innerHTML = `<span class="pbq-check-box">✓</span><span>${opt.text}</span>`;
+      btn.addEventListener('click', () => {
+        if (checked) return;
+        if (work.selected.has(i)) work.selected.delete(i);
+        else work.selected.add(i);
+        btn.classList.toggle('selected', work.selected.has(i));
+      });
+      ws.appendChild(btn);
+    });
+  }
+
+  else if (p.type === 'match') {
+    work = { picks: {} };
+    p.items.forEach((item, i) => {
+      const row = document.createElement('div');
+      row.className = 'pbq-item';
+      row.dataset.i = i;
+
+      const txt = document.createElement('div');
+      txt.className = 'pbq-item-text';
+      txt.textContent = item.text;
+
+      const sel = document.createElement('select');
+      sel.className = 'form-select pbq-select';
+      sel.innerHTML = `<option value="">— choose —</option>` +
+        shuffle(p.categories).map(c => `<option value="${c}">${c}</option>`).join('');
+      sel.addEventListener('change', () => {
+        if (checked) { sel.value = work.picks[i] || ''; return; }
+        work.picks[i] = sel.value;
+      });
+
+      row.appendChild(txt);
+      row.appendChild(sel);
+      ws.appendChild(row);
+    });
+  }
+
+  else if (p.type === 'order') {
+    // Shuffle a copy; store indices into the ORIGINAL (correct) array
+    let orderIdx = shuffle(p.items.map((_, i) => i));
+    work = { order: orderIdx };
+    renderOrder(p, ws);
+  }
+}
+
+function renderOrder(p, ws) {
+  ws.innerHTML = '';
+  work.order.forEach((origIndex, pos) => {
+    const row = document.createElement('div');
+    row.className = 'pbq-item';
+
+    const num = document.createElement('div');
+    num.className = 'pbq-order-num';
+    num.textContent = pos + 1;
+
+    const txt = document.createElement('div');
+    txt.className = 'pbq-item-text';
+    txt.textContent = p.items[origIndex];
+
+    const ctrl = document.createElement('div');
+    ctrl.className = 'pbq-order-controls';
+    const up = document.createElement('button');
+    up.className = 'pbq-order-btn';
+    up.textContent = '▲';
+    up.disabled = pos === 0 || checked;
+    up.addEventListener('click', () => {
+      [work.order[pos - 1], work.order[pos]] = [work.order[pos], work.order[pos - 1]];
+      renderOrder(p, ws);
+    });
+    const down = document.createElement('button');
+    down.className = 'pbq-order-btn';
+    down.textContent = '▼';
+    down.disabled = pos === work.order.length - 1 || checked;
+    down.addEventListener('click', () => {
+      [work.order[pos + 1], work.order[pos]] = [work.order[pos], work.order[pos + 1]];
+      renderOrder(p, ws);
+    });
+    ctrl.appendChild(up);
+    ctrl.appendChild(down);
+
+    row.appendChild(num);
+    row.appendChild(txt);
+    row.appendChild(ctrl);
+    ws.appendChild(row);
+  });
+}
+
+// ---- Check the answer ----
+function checkAnswer() {
+  if (checked) return;
+  const p = pbqList[idx];
+  let fraction = 0;
+
+  if (p.type === 'multi') {
+    if (work.selected.size === 0) { alert('Select your answers first.'); return; }
+    const correctIdx = new Set(p.options.map((o, i) => o.correct ? i : -1).filter(i => i >= 0));
+    let right = 0;
+    document.querySelectorAll('#pbq-workspace .choice-btn').forEach(btn => {
+      const i = parseInt(btn.dataset.i);
+      const isCorrect = correctIdx.has(i);
+      const picked = work.selected.has(i);
+      btn.disabled = true;
+      if (isCorrect && picked) { btn.classList.add('correct'); right++; }
+      else if (isCorrect && !picked) { btn.classList.add('missed'); }
+      else if (!isCorrect && picked) { btn.classList.add('wrong'); }
+    });
+    // Credit = correct picks, minus wrong picks, floored at 0
+    const wrongPicks = [...work.selected].filter(i => !correctIdx.has(i)).length;
+    fraction = Math.max(0, (right - wrongPicks) / correctIdx.size);
+  }
+
+  else if (p.type === 'match') {
+    if (Object.keys(work.picks).filter(k => work.picks[k]).length < p.items.length) {
+      alert('Match every item before checking.'); return;
+    }
+    let right = 0;
+    document.querySelectorAll('#pbq-workspace .pbq-item').forEach(row => {
+      const i = parseInt(row.dataset.i);
+      const ok = work.picks[i] === p.items[i].answer;
+      if (ok) right++;
+      row.classList.add(ok ? 'correct' : 'wrong');
+      const sel = row.querySelector('select');
+      sel.disabled = true;
+      if (!ok) {
+        const tag = document.createElement('div');
+        tag.className = 'pbq-answer-tag';
+        tag.textContent = '✓ ' + p.items[i].answer;
+        row.appendChild(tag);
+      }
+    });
+    fraction = right / p.items.length;
+  }
+
+  else if (p.type === 'order') {
+    let right = 0;
+    const rows = document.querySelectorAll('#pbq-workspace .pbq-item');
+    work.order.forEach((origIndex, pos) => {
+      const ok = origIndex === pos;   // correct array index equals correct position
+      if (ok) right++;
+      rows[pos].classList.add(ok ? 'correct' : 'wrong');
+      if (!ok) {
+        const tag = document.createElement('div');
+        tag.className = 'pbq-answer-tag';
+        tag.textContent = 'Correct position: ' + (origIndex + 1);
+        rows[pos].appendChild(tag);
+      }
+    });
+    fraction = right / p.items.length;
+  }
+
+  checked = true;
+  scores.push(fraction);
+
+  const pct = Math.round(fraction * 100);
+  const exp = document.getElementById('pbq-explanation');
+  let head;
+  if (pct === 100) head = '✓ Fully correct!';
+  else if (pct >= 50) head = `◐ Partially correct — ${pct}% on this task.`;
+  else head = `✗ Mostly incorrect — ${pct}% on this task.`;
+  exp.innerHTML = `<strong>${head}</strong> ${p.explanation}`;
+  exp.classList.add('show');
+
+  document.getElementById('pbq-check').style.display = 'none';
+  document.getElementById('pbq-next').style.display = '';
+  document.getElementById('pbq-score').textContent = `Score: ${Math.round(avgScore() * 100)}%`;
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+function nextPbq() {
+  idx++;
+  if (idx >= pbqList.length) { showComplete(); return; }
+  render();
+}
+
+function showComplete() {
+  document.getElementById('pbq-card').style.display = 'none';
+  document.getElementById('pbq-complete').style.display = '';
+  document.getElementById('pbq-progress').style.width = '100%';
+
+  const pct = Math.round(avgScore() * 100);
+  const perfect = scores.filter(s => s === 1).length;
+  document.getElementById('pbq-final-score').textContent = pct + '%';
+  document.getElementById('pbq-final-detail').textContent =
+    `${perfect} of ${scores.length} tasks completed perfectly`;
+  let msg;
+  if (pct >= 90) msg = '🏆 Excellent — PBQs will not slow you down on exam day.';
+  else if (pct >= 75) msg = '✅ Solid work. Review the partial-credit tasks above.';
+  else if (pct >= 50) msg = '📚 Decent start — re-read the explanations and run it again.';
+  else msg = '💪 Keep practicing — work through each explanation carefully.';
+  document.getElementById('pbq-final-msg').textContent = msg;
+}
+
+// ---- Wire up ----
+document.getElementById('pbq-check').addEventListener('click', checkAnswer);
+document.getElementById('pbq-next').addEventListener('click', nextPbq);
+document.getElementById('pbq-reset').addEventListener('click', () => { if (!checked) render(); });
+document.getElementById('pbq-restart').addEventListener('click', startSession);
+
+document.addEventListener('DOMContentLoaded', startSession);
+</script>
+</body>
+</html>

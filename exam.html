@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SY0-701 Study | Mock Exam</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">SY0&#x2011;701 <span>// Study App</span></div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Dashboard</a>
+      <a href="practice.html" class="nav-link">Practice</a>
+      <a href="exam.html" class="nav-link">Mock Exam</a>
+      <a href="pbq.html" class="nav-link">PBQs</a>
+      <a href="questions.html" class="nav-link">Question Bank</a>
+      <a href="stats.html" class="nav-link">Stats</a>
+      <a href="glossary.html" class="nav-link">Glossary</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-sm">
+
+  <!-- ============ START SCREEN ============ -->
+  <div id="start-screen">
+    <div class="page-header">
+      <div class="page-title">Full Mock Exam</div>
+      <div class="page-subtitle">Simulates the real CompTIA Security+ SY0-701 exam</div>
+    </div>
+
+    <div class="card section-gap">
+      <div class="stat-label">📋 Exam Format</div>
+      <div class="grid-3" style="margin-top:14px">
+        <div>
+          <div class="stat-value" id="cfg-count">90</div>
+          <div class="stat-sub">Questions</div>
+        </div>
+        <div>
+          <div class="stat-value" style="color:var(--accent)">90</div>
+          <div class="stat-sub">Minutes</div>
+        </div>
+        <div>
+          <div class="stat-value" style="color:var(--green)">750</div>
+          <div class="stat-sub">Pass (of 900)</div>
+        </div>
+      </div>
+      <hr class="divider" />
+      <ul style="color:var(--text2);font-size:14px;line-height:1.9;padding-left:20px;margin:0">
+        <li>Questions are drawn across all 5 domains using the official exam weighting.</li>
+        <li><strong style="color:var(--text)">No feedback is shown</strong> until you submit — just like the real exam.</li>
+        <li>You can flag questions, jump around with the navigator, and revisit anything.</li>
+        <li>The exam <strong style="color:var(--text)">auto-submits</strong> when the timer hits zero.</li>
+        <li>Your progress is saved — if you close the tab you can resume where you left off.</li>
+      </ul>
+      <div style="margin-top:10px">
+        <div class="form-label" style="margin-bottom:6px">Exam length</div>
+        <select class="filter-select" id="length-select">
+          <option value="90" selected>Full exam — 90 questions / 90 min</option>
+          <option value="45">Half exam — 45 questions / 45 min</option>
+          <option value="20">Quick mock — 20 questions / 20 min</option>
+        </select>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-lg" id="begin-btn">▶ Begin Exam</button>
+        <button class="btn btn-ghost btn-lg" id="resume-btn" style="display:none">↻ Resume Saved Exam</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ EXAM SCREEN ============ -->
+  <div id="exam-screen" style="display:none">
+
+    <div class="exam-bar">
+      <div class="session-counter" id="exam-counter">Question 1 of 90</div>
+      <div class="exam-timer" id="exam-timer">90:00</div>
+    </div>
+
+    <div class="progress-bar-wrap" style="margin-bottom:18px">
+      <div class="progress-bar-fill" id="exam-progress" style="width:0%;background:var(--accent)"></div>
+    </div>
+
+    <div class="question-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
+        <div id="exam-domain-badge"></div>
+        <button class="btn btn-ghost btn-sm" id="flag-btn">⚑ Flag</button>
+      </div>
+
+      <div class="question-text" id="exam-q-text">Loading…</div>
+      <div class="choices-grid" id="exam-choices"></div>
+
+      <div class="exam-nav">
+        <button class="btn btn-ghost" id="prev-btn">← Previous</button>
+        <button class="btn btn-ghost" id="clear-btn">Clear answer</button>
+        <button class="btn btn-primary" id="next-btn">Next →</button>
+      </div>
+    </div>
+
+    <div class="card section-gap" style="margin-top:24px">
+      <div class="stat-label">🧭 Question Navigator</div>
+      <div class="q-nav-legend">
+        <span><i class="dot answered"></i> Answered</span>
+        <span><i class="dot flagged"></i> Flagged</span>
+        <span><i class="dot"></i> Unanswered</span>
+      </div>
+      <div class="q-nav-grid" id="q-nav-grid"></div>
+      <div style="margin-top:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div class="session-counter" id="answered-summary">0 answered · 0 flagged</div>
+        <button class="btn btn-primary" id="submit-btn">Submit Exam</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ RESULTS SCREEN ============ -->
+  <div id="results-screen" style="display:none">
+    <div class="page-header">
+      <div class="page-title">Exam Results</div>
+      <div class="page-subtitle" id="results-subtitle"></div>
+    </div>
+
+    <div class="card section-gap" style="text-align:center;padding:36px">
+      <div id="result-badge" class="result-badge">—</div>
+      <div class="stat-value" id="result-score" style="font-size:56px;margin:14px 0 4px">—</div>
+      <div class="stat-sub" id="result-scale">scaled score (100–900)</div>
+      <div class="grid-3" style="margin-top:24px">
+        <div>
+          <div class="stat-value" id="result-raw" style="font-size:26px">—</div>
+          <div class="stat-sub">Correct</div>
+        </div>
+        <div>
+          <div class="stat-value" id="result-pct" style="font-size:26px;color:var(--accent)">—</div>
+          <div class="stat-sub">Accuracy</div>
+        </div>
+        <div>
+          <div class="stat-value" id="result-time" style="font-size:26px;color:var(--text2)">—</div>
+          <div class="stat-sub">Time Used</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-gap">
+      <h2>Performance by Domain</h2>
+      <div class="card">
+        <div id="result-domains"></div>
+      </div>
+    </div>
+
+    <div class="section-gap">
+      <h2>Review Questions</h2>
+      <div class="filter-bar">
+        <select class="filter-select" id="review-filter">
+          <option value="all">All questions</option>
+          <option value="incorrect">Incorrect only</option>
+          <option value="correct">Correct only</option>
+          <option value="flagged">Flagged only</option>
+          <option value="skipped">Skipped only</option>
+        </select>
+        <button class="btn btn-primary btn-sm" id="retake-btn">↻ Take Another Exam</button>
+        <a href="index.html" class="btn btn-ghost btn-sm">Dashboard</a>
+      </div>
+      <div id="review-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="data/questions.js"></script>
+<script src="data/glossary.js"></script>
+<script src="app.js"></script>
+<script>
+// ============================================================
+// Mock Exam — CompTIA Security+ SY0-701 simulation
+// ============================================================
+
+// Official SY0-701 domain weighting (% of exam)
+const DOMAIN_WEIGHT = { 1: 0.12, 2: 0.22, 3: 0.18, 4: 0.28, 5: 0.20 };
+const EXAM_KEY = 'exam_session';
+const PASS_SCALED = 750;       // CompTIA passing score (scale 100–900)
+
+let exam = null;   // { ids, qById, answers, flagged, current, startTs, total, durationSec }
+let timerInt = null;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ---- Build a weighted question set ----
+function buildExamQuestions(total) {
+  const all = getAllQuestions();
+  const byDomain = {};
+  all.forEach(q => { (byDomain[q.domainId] = byDomain[q.domainId] || []).push(q); });
+
+  let picked = [];
+  [1, 2, 3, 4, 5].forEach(d => {
+    const want = Math.round((DOMAIN_WEIGHT[d] || 0) * total);
+    const pool = shuffle(byDomain[d] || []);
+    picked = picked.concat(pool.slice(0, want));
+  });
+  // Top up / trim to exact count if rounding drifted
+  if (picked.length < total) {
+    const used = new Set(picked.map(q => q.id));
+    const extra = shuffle(all.filter(q => !used.has(q.id)));
+    picked = picked.concat(extra.slice(0, total - picked.length));
+  }
+  picked = shuffle(picked).slice(0, total);
+  return picked;
+}
+
+// ---- Session persistence (store ids only, rebuild objects) ----
+function saveExam() {
+  if (!exam) return;
+  store.set(EXAM_KEY, {
+    ids: exam.ids,
+    answers: exam.answers,
+    flagged: exam.flagged,
+    current: exam.current,
+    startTs: exam.startTs,
+    durationSec: exam.durationSec
+  });
+}
+
+function loadSavedExam() {
+  const saved = store.get(EXAM_KEY);
+  if (!saved || !saved.ids || !saved.ids.length) return null;
+  const all = getAllQuestions();
+  const map = {};
+  all.forEach(q => { map[q.id] = q; });
+  const qById = saved.ids.map(id => map[id]).filter(Boolean);
+  if (qById.length !== saved.ids.length) return null;  // question set changed
+  return {
+    ids: saved.ids,
+    qById,
+    answers: saved.answers || {},
+    flagged: saved.flagged || {},
+    current: saved.current || 0,
+    startTs: saved.startTs,
+    durationSec: saved.durationSec || (saved.ids.length * 60)
+  };
+}
+
+// ---- Start / resume ----
+function startExam(total) {
+  const qs = buildExamQuestions(total);
+  if (qs.length === 0) { alert('No questions available.'); return; }
+  exam = {
+    ids: qs.map(q => q.id),
+    qById: qs,
+    answers: {},
+    flagged: {},
+    current: 0,
+    startTs: Date.now(),
+    durationSec: qs.length * 60   // 1 minute per question
+  };
+  saveExam();
+  enterExamScreen();
+}
+
+function resumeExam() {
+  exam = loadSavedExam();
+  if (!exam) { alert('No saved exam found.'); return; }
+  enterExamScreen();
+}
+
+function enterExamScreen() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('results-screen').style.display = 'none';
+  document.getElementById('exam-screen').style.display = '';
+  window.addEventListener('beforeunload', warnUnload);
+  renderQuestion();
+  startTimer();
+}
+
+function warnUnload(e) { e.preventDefault(); e.returnValue = ''; }
+
+// ---- Timer ----
+function remainingSec() {
+  const elapsed = (Date.now() - exam.startTs) / 1000;
+  return Math.max(0, Math.round(exam.durationSec - elapsed));
+}
+
+function startTimer() {
+  updateTimer();
+  timerInt = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+  const rem = remainingSec();
+  const el = document.getElementById('exam-timer');
+  const m = Math.floor(rem / 60), s = rem % 60;
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  el.classList.toggle('warning', rem <= 600 && rem > 120);
+  el.classList.toggle('danger', rem <= 120);
+  if (rem <= 0) { clearInterval(timerInt); finishExam(true); }
+}
+
+// ---- Render a question ----
+function renderQuestion() {
+  const idx = exam.current;
+  const q = exam.qById[idx];
+  const total = exam.qById.length;
+  const col = domainColor(q.domainId);
+
+  document.getElementById('exam-counter').textContent = `Question ${idx + 1} of ${total}`;
+  document.getElementById('exam-progress').style.width = ((idx + 1) / total * 100) + '%';
+
+  document.getElementById('exam-domain-badge').innerHTML =
+    `<span class="domain-badge" style="background:${col.bg}20;color:${col.bg}">
+      <span class="domain-dot" style="background:${col.bg}"></span>Domain ${q.domainId}
+    </span>`;
+
+  document.getElementById('exam-q-text').textContent = q.question;
+
+  const choicesEl = document.getElementById('exam-choices');
+  choicesEl.innerHTML = '';
+  ['A','B','C','D'].forEach(key => {
+    if (!q.choices[key]) return;
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn' + (exam.answers[idx] === key ? ' selected' : '');
+    btn.innerHTML = `<span class="choice-key">${key}</span><span>${q.choices[key]}</span>`;
+    btn.addEventListener('click', () => selectAnswer(idx, key));
+    choicesEl.appendChild(btn);
+  });
+
+  const flagBtn = document.getElementById('flag-btn');
+  const flagged = !!exam.flagged[idx];
+  flagBtn.classList.toggle('flagged-active', flagged);
+  flagBtn.textContent = flagged ? '⚑ Flagged' : '⚑ Flag';
+
+  document.getElementById('prev-btn').disabled = idx === 0;
+  document.getElementById('next-btn').disabled = idx === total - 1;
+
+  renderNavigator();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function selectAnswer(idx, key) {
+  if (exam.answers[idx] === key) delete exam.answers[idx];   // toggle off
+  else exam.answers[idx] = key;
+  saveExam();
+  renderQuestion();
+}
+
+function clearAnswer() {
+  delete exam.answers[exam.current];
+  saveExam();
+  renderQuestion();
+}
+
+function toggleFlag() {
+  const idx = exam.current;
+  if (exam.flagged[idx]) delete exam.flagged[idx];
+  else exam.flagged[idx] = true;
+  saveExam();
+  renderQuestion();
+}
+
+function goTo(idx) {
+  exam.current = Math.max(0, Math.min(exam.qById.length - 1, idx));
+  saveExam();
+  renderQuestion();
+}
+
+function renderNavigator() {
+  const grid = document.getElementById('q-nav-grid');
+  grid.innerHTML = '';
+  exam.qById.forEach((q, i) => {
+    const b = document.createElement('button');
+    b.className = 'q-nav-btn';
+    if (exam.answers[i] != null) b.classList.add('answered');
+    if (exam.flagged[i]) b.classList.add('flagged');
+    if (i === exam.current) b.classList.add('current');
+    b.textContent = i + 1;
+    b.addEventListener('click', () => goTo(i));
+    grid.appendChild(b);
+  });
+  const answered = Object.keys(exam.answers).length;
+  const flagged = Object.keys(exam.flagged).length;
+  document.getElementById('answered-summary').textContent =
+    `${answered} answered · ${flagged} flagged`;
+}
+
+// ---- Submit ----
+function confirmSubmit() {
+  const answered = Object.keys(exam.answers).length;
+  const unanswered = exam.qById.length - answered;
+  let msg = 'Submit your exam now?';
+  if (unanswered > 0) msg = `You have ${unanswered} unanswered question(s). Submit anyway?`;
+  if (confirm(msg)) finishExam(false);
+}
+
+function finishExam(auto) {
+  clearInterval(timerInt);
+  window.removeEventListener('beforeunload', warnUnload);
+
+  const total = exam.qById.length;
+  let correct = 0;
+  const domainStats = {};   // domainId -> { total, correct }
+
+  exam.qById.forEach((q, i) => {
+    const chosen = exam.answers[i] || null;
+    const isCorrect = chosen === q.correct;
+    if (isCorrect) correct++;
+    const d = domainStats[q.domainId] || (domainStats[q.domainId] = { total: 0, correct: 0 });
+    d.total++;
+    if (isCorrect) d.correct++;
+    // Feed dashboard/stats — only count questions actually answered
+    if (chosen) recordAttempt(q.id, isCorrect, q.domain, q.domainId);
+  });
+
+  const pct = total > 0 ? correct / total : 0;
+  const scaled = Math.max(100, Math.round(pct * 900));
+  const elapsedSec = Math.min(exam.durationSec, Math.round((Date.now() - exam.startTs) / 1000));
+
+  const result = { total, correct, pct, scaled, elapsedSec, domainStats, auto };
+  showResults(result);
+  store.remove(EXAM_KEY);
+}
+
+// ---- Results ----
+function fmtTime(sec) {
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return `${m}m ${String(s).padStart(2,'0')}s`;
+}
+
+function showResults(r) {
+  document.getElementById('exam-screen').style.display = 'none';
+  document.getElementById('results-screen').style.display = '';
+
+  const passed = r.scaled >= PASS_SCALED;
+  const badge = document.getElementById('result-badge');
+  badge.textContent = passed ? '✓ PASS' : '✗ FAIL';
+  badge.className = 'result-badge ' + (passed ? 'pass' : 'fail');
+
+  document.getElementById('results-subtitle').textContent = r.auto
+    ? 'Time expired — exam was auto-submitted.'
+    : 'Exam submitted.';
+
+  document.getElementById('result-score').textContent = r.scaled;
+  document.getElementById('result-score').style.color = passed ? 'var(--green)' : 'var(--red)';
+  document.getElementById('result-scale').textContent =
+    `scaled score · ${PASS_SCALED} needed to pass`;
+  document.getElementById('result-raw').textContent = `${r.correct}/${r.total}`;
+  document.getElementById('result-pct').textContent = Math.round(r.pct * 100) + '%';
+  document.getElementById('result-time').textContent = fmtTime(r.elapsedSec);
+
+  // Per-domain
+  const dEl = document.getElementById('result-domains');
+  dEl.innerHTML = '';
+  [1, 2, 3, 4, 5].forEach(d => {
+    const s = r.domainStats[d];
+    if (!s) return;
+    const col = domainColor(d);
+    const acc = Math.round(s.correct / s.total * 100);
+    dEl.innerHTML += `
+      <div class="domain-row">
+        <div class="domain-dot" style="background:${col.bg};width:10px;height:10px"></div>
+        <div class="domain-name">${col.name}</div>
+        <div style="flex:0 0 160px">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width:${acc}%;background:${col.bg}"></div>
+          </div>
+        </div>
+        <div class="domain-stats">${acc}% <span style="color:var(--text3);font-size:11px">(${s.correct}/${s.total})</span></div>
+      </div>`;
+  });
+
+  buildReview('all');
+  document.getElementById('review-filter').value = 'all';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildReview(filter) {
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+  let shown = 0;
+
+  exam.qById.forEach((q, i) => {
+    const chosen = exam.answers[i] || null;
+    const isCorrect = chosen === q.correct;
+    const skipped = !chosen;
+    const flagged = !!exam.flagged[i];
+
+    if (filter === 'incorrect' && (isCorrect || skipped)) return;
+    if (filter === 'correct' && !isCorrect) return;
+    if (filter === 'flagged' && !flagged) return;
+    if (filter === 'skipped' && !skipped) return;
+    shown++;
+
+    const col = domainColor(q.domainId);
+    let tag;
+    if (isCorrect) tag = '<span class="tag tag-correct">Correct</span>';
+    else if (skipped) tag = '<span class="tag" style="background:var(--bg4);color:var(--text2)">Skipped</span>';
+    else tag = '<span class="tag tag-wrong">Incorrect</span>';
+
+    let choicesHtml = '';
+    ['A','B','C','D'].forEach(key => {
+      if (!q.choices[key]) return;
+      let cls = 'choice-btn';
+      if (key === q.correct) cls += ' correct';
+      else if (key === chosen) cls += ' wrong';
+      choicesHtml += `<div class="${cls}" style="cursor:default">
+        <span class="choice-key">${key}</span><span>${q.choices[key]}</span></div>`;
+    });
+
+    list.innerHTML += `
+      <div class="card section-gap" style="border-left:3px solid ${col.bg}">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px">
+          <span class="session-counter">Q${i + 1} · Domain ${q.domainId}</span>
+          <span>${flagged ? '⚑ ' : ''}${tag}</span>
+        </div>
+        <div class="question-text" style="font-size:15px;margin-bottom:14px">${q.question}</div>
+        <div class="choices-grid">${choicesHtml}</div>
+        <div class="explanation show" style="margin-top:14px">
+          <strong>Correct answer: ${q.correct}.</strong> ${q.explanation}
+        </div>
+      </div>`;
+  });
+
+  if (shown === 0) {
+    list.innerHTML = `<div class="no-results">No questions match this filter.</div>`;
+  }
+}
+
+// ---- Wire up ----
+document.addEventListener('DOMContentLoaded', () => {
+  // Show resume option if a saved exam exists
+  const saved = loadSavedExam();
+  if (saved) {
+    const r = document.getElementById('resume-btn');
+    r.style.display = '';
+    const elapsed = (Date.now() - saved.startTs) / 1000;
+    const rem = Math.max(0, Math.round(saved.durationSec - elapsed));
+    r.textContent = `↻ Resume Saved Exam (${Math.floor(rem/60)} min left)`;
+    if (rem <= 0) r.style.display = 'none';   // expired — start fresh
+  }
+
+  document.getElementById('length-select').addEventListener('change', e => {
+    document.getElementById('cfg-count').textContent = e.target.value;
+  });
+
+  document.getElementById('begin-btn').addEventListener('click', () => {
+    if (store.get(EXAM_KEY) && !confirm('Starting a new exam discards your saved exam. Continue?')) return;
+    startExam(parseInt(document.getElementById('length-select').value));
+  });
+  document.getElementById('resume-btn').addEventListener('click', resumeExam);
+
+  document.getElementById('prev-btn').addEventListener('click', () => goTo(exam.current - 1));
+  document.getElementById('next-btn').addEventListener('click', () => goTo(exam.current + 1));
+  document.getElementById('clear-btn').addEventListener('click', clearAnswer);
+  document.getElementById('flag-btn').addEventListener('click', toggleFlag);
+  document.getElementById('submit-btn').addEventListener('click', confirmSubmit);
+
+  document.getElementById('review-filter').addEventListener('change', e => buildReview(e.target.value));
+  document.getElementById('retake-btn').addEventListener('click', () => location.reload());
+});
+</script>
+</body>
+</html>
